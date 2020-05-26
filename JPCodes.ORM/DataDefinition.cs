@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace JPCodes.ORM
 {
-    internal class DataDefinition
+    public class DataDefinition
     {
         #region Instance Members
         public string TableName { get; private set; }

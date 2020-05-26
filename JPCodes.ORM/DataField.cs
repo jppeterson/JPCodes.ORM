@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace JPCodes.ORM
 {
-    internal class DataField
+    public class DataField
     {
         public DataDefinition ParentDefinition { get; set; }
         public bool IsPrimaryKey { get; set; }
