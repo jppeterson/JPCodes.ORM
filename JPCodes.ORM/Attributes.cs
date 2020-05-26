@@ -50,11 +50,21 @@ namespace JPCodes.ORM
     /// Indicates a field is a primary key in the datasource.
     /// </summary>
     [AttributeUsage(AttributeTargets.Property)]
-    public class PrimaryKeyAttribute : DataFieldAttribute { }
+    public class PrimaryKeyAttribute : DataFieldAttribute
+    {
+        public PrimaryKeyAttribute() : base() { }
+        public PrimaryKeyAttribute(string fieldName) : base(fieldName) { }
+        public PrimaryKeyAttribute(string fieldName, string displayName) : base(fieldName, displayName) { }
+    }
 
     /// <summary>
     /// Indicates a field is unique in the datasource.
     /// </summary>
     [AttributeUsage(AttributeTargets.Property)]
-    public class UniqueFieldAttribute : DataFieldAttribute { }
+    public class UniqueFieldAttribute : DataFieldAttribute 
+    {
+        public UniqueFieldAttribute() : base() { }
+        public UniqueFieldAttribute(string fieldName) : base(fieldName) { }
+        public UniqueFieldAttribute(string fieldName, string displayName) : base(fieldName, displayName) { }
+    }
 }
