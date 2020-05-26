@@ -56,8 +56,7 @@ namespace JPCodes.ORM
                         SafeDataType = info.PropertyType.IsConstructedGenericType 
                             ? Nullable.GetUnderlyingType(info.PropertyType) 
                             : info.PropertyType,
-                        IsPrimaryKey = dfAttribute is PrimaryKeyAttribute,
-                        IsUnique = dfAttribute is UniqueFieldAttribute
+                        IsKey = dfAttribute.IsKey,
                     });
                 }
 

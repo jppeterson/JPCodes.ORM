@@ -12,8 +12,7 @@ namespace JPCodes.ORM
     public class DataField
     {
         public DataDefinition ParentDefinition { get; set; }
-        public bool IsPrimaryKey { get; set; }
-        public bool IsUnique { get; set; }
+        public bool IsKey { get; set; }
         public Type DataType { get; set; }
         public Type SafeDataType { get; set; }
         public DbType DbType
@@ -45,11 +44,9 @@ namespace JPCodes.ORM
                 }
             }
         }
-        public bool Sensitive { get; set; }
         public string FieldName { get; set; }
         public string PropertyName { get; set; }
         public string DisplayName { get; set; }
-        public string ParamName { get; set; }
 
         public void Set(object instance, object value)
         {

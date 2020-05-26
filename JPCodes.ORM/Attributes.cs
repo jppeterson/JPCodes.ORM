@@ -17,18 +17,6 @@ namespace JPCodes.ORM
     }
 
     /// <summary>
-    /// Indicates a group of fields are unique in the database.
-    /// </summary>
-    [AttributeUsage(AttributeTargets.Class)]
-    public class UniqueFieldGroupAttribute : Attribute
-    {
-        public string[] Fields { get; set; }
-        public UniqueFieldGroupAttribute() : base() { }
-        public UniqueFieldGroupAttribute(params string[] fields) : base()
-            => Fields = fields;
-    }
-
-    /// <summary>
     /// Set a DisplayName and FieldName to be different than the property name.
     /// </summary>
     [AttributeUsage(AttributeTargets.Property)]
@@ -36,35 +24,19 @@ namespace JPCodes.ORM
     {
         public string DisplayName { get; set; }
         public string FieldName { get; set; }
+        public bool IsKey { get; set; }
+
         public DataFieldAttribute() : base() { }
-        public DataFieldAttribute(string fieldName) : base()
-            => FieldName = DisplayName = fieldName;
-        public DataFieldAttribute(string fieldName, string displayName) : base()
+        public DataFieldAttribute(bool isKey) : this() 
         {
-            FieldName = fieldName;
-            DisplayName = displayName;
+            IsKey = isKey;
         }
-    }
-
-    /// <summary>
-    /// Indicates a field is a primary key in the datasource.
-    /// </summary>
-    [AttributeUsage(AttributeTargets.Property)]
-    public class PrimaryKeyAttribute : DataFieldAttribute
-    {
-        public PrimaryKeyAttribute() : base() { }
-        public PrimaryKeyAttribute(string fieldName) : base(fieldName) { }
-        public PrimaryKeyAttribute(string fieldName, string displayName) : base(fieldName, displayName) { }
-    }
-
-    /// <summary>
-    /// Indicates a field is unique in the datasource.
-    /// </summary>
-    [AttributeUsage(AttributeTargets.Property)]
-    public class UniqueFieldAttribute : DataFieldAttribute 
-    {
-        public UniqueFieldAttribute() : base() { }
-        public UniqueFieldAttribute(string fieldName) : base(fieldName) { }
-        public UniqueFieldAttribute(string fieldName, string displayName) : base(fieldName, displayName) { }
+        public DataFieldAttribute(string fieldName) : this(false)
+            => FieldName = DisplayName = fieldName;
+        public DataFieldAttribute(string fieldName, bool isKey) : this(isKey)
+            => FieldName = DisplayName = fieldName;
+        public DataFieldAttribute(string fieldName, string displayName, bool isKey) : this(fieldName, isKey) 
+            => DisplayName = displayName;
+        public DataFieldAttribute(string fieldName, string displayName) : this(fieldName, displayName, false) { }
     }
 }
