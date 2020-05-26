@@ -11,6 +11,9 @@ namespace JPCodes.ORM
     public class DataRecordAttribute : Attribute
     {
         public string TableName { get; set; }
+        public DataRecordAttribute() : base() { }
+        public DataRecordAttribute(string tableName) : base()
+            => TableName = tableName;
     }
 
     /// <summary>
@@ -19,7 +22,10 @@ namespace JPCodes.ORM
     [AttributeUsage(AttributeTargets.Class)]
     public class UniqueFieldGroupAttribute : Attribute
     {
-        public string[] Fields { get; private set; }
+        public string[] Fields { get; set; }
+        public UniqueFieldGroupAttribute() : base() { }
+        public UniqueFieldGroupAttribute(params string[] fields) : base()
+            => Fields = fields;
     }
 
     /// <summary>
@@ -28,8 +34,16 @@ namespace JPCodes.ORM
     [AttributeUsage(AttributeTargets.Property)]
     public class DataFieldAttribute : Attribute
     {
-        public string DisplayName { get; private set; }
-        public string FieldName { get; private set; }
+        public string DisplayName { get; set; }
+        public string FieldName { get; set; }
+        public DataFieldAttribute() : base() { }
+        public DataFieldAttribute(string fieldName) : base()
+            => FieldName = DisplayName = fieldName;
+        public DataFieldAttribute(string fieldName, string displayName) : base()
+        {
+            FieldName = fieldName;
+            DisplayName = displayName;
+        }
     }
 
     /// <summary>
