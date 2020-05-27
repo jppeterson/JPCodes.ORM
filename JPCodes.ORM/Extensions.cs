@@ -35,7 +35,7 @@ namespace JPCodes.ORM
             return resultFields;
         }
 
-        public static async Task<int> ExecuteAsync(this DbConnection dbConnection, string sql, CommandType dbCommmandType = CommandType.Text, params (string Name, object Value)[] parameters)
+        public static async Task<int> ExecuteAsync(this DbConnection dbConnection, string sql, CommandType dbCommmandType = CommandType.Text, params DbParameter[] parameters)
         {
             bool opened = dbConnection.State == ConnectionState.Closed;
             try
@@ -47,15 +47,9 @@ namespace JPCodes.ORM
 
                 using (DbCommand command = dbConnection.CreateCommand())
                 {
-                    command.CommandType = dbCommmandType;
                     command.CommandText = sql;
-                    foreach ((string name, object value) param in parameters)
-                    {
-                        DbParameter dbparam = command.CreateParameter();
-                        dbparam.ParameterName = param.name;
-                        dbparam.Value = param.value;
-                        command.Parameters.Add(dbparam);
-                    }
+                    command.CommandType = dbCommmandType;
+                    command.Parameters.AddRange(parameters);
                     return await command.ExecuteNonQueryAsync();
                 }
             }
@@ -67,7 +61,8 @@ namespace JPCodes.ORM
                 }
             }
         }
-        public static async Task<T> ExecuteOneAsync<T>(this DbConnection dbConnection, string sql, CommandType dbCommmandType = CommandType.Text, Func<DbDataRecord, T> mapper = null, params (string Name, object Value)[] parameters)
+
+        public static async Task<T> ExecuteOneAsync<T>(this DbConnection dbConnection, string sql, CommandType dbCommmandType = CommandType.Text, Func<DbDataRecord, T> mapper = null, params DbParameter[] parameters)
             where T : new()
         {
             bool opened = dbConnection.State == ConnectionState.Closed;
@@ -81,13 +76,8 @@ namespace JPCodes.ORM
                 using (DbCommand command = dbConnection.CreateCommand())
                 {
                     command.CommandText = sql;
-                    foreach ((string name, object value) in parameters)
-                    {
-                        DbParameter dbparam = command.CreateParameter();
-                        dbparam.ParameterName = name;
-                        dbparam.Value = value;
-                        command.Parameters.Add(dbparam);
-                    }
+                    command.CommandType = dbCommmandType;
+                    command.Parameters.AddRange(parameters);
                     using (DbDataReader rdr = await command.ExecuteReaderAsync())
                     {
                         try
@@ -120,7 +110,8 @@ namespace JPCodes.ORM
                 }
             }
         }
-        public static async Task<List<T>> ExecuteManyAsync<T>(this DbConnection dbConnection, string sql, CommandType dbCommmandType = CommandType.Text, Func<DbDataRecord, T> mapper = null, params (string Name, object Value)[] parameters)
+
+        public static async Task<List<T>> ExecuteManyAsync<T>(this DbConnection dbConnection, string sql, CommandType dbCommmandType = CommandType.Text, Func<DbDataRecord, T> mapper = null, params DbParameter[] parameters)
             where T : new()
         {
             bool opened = dbConnection.State == ConnectionState.Closed;
@@ -134,13 +125,9 @@ namespace JPCodes.ORM
                 using (DbCommand command = dbConnection.CreateCommand())
                 {
                     command.CommandText = sql;
-                    foreach ((string name, object value) in parameters)
-                    {
-                        DbParameter dbparam = command.CreateParameter();
-                        dbparam.ParameterName = name;
-                        dbparam.Value = value;
-                        command.Parameters.Add(dbparam);
-                    }
+                    command.CommandType = dbCommmandType;
+                    command.Parameters.AddRange(parameters);
+
                     using (DbDataReader rdr = await command.ExecuteReaderAsync())
                     {
                         try
@@ -173,6 +160,24 @@ namespace JPCodes.ORM
                     dbConnection.Close();
                 }
             }
+        }
+
+        public static async Task<int> InsertAsync<T>(this DbConnection dbConnection, T item, string sql = null, CommandType dbCommandType = CommandType.Text)
+        {
+            DataDefinition def = DataDefinition.FromType(typeof(T));
+            return await dbConnection.ExecuteAsync(sql ?? def.GenerateInsertSQL(), dbCommandType, def.GenerateParameters(item).ToArray());
+        }
+
+        public static async Task<int> UpdateAsync<T>(this DbConnection dbConnection, T item, string sql = null, CommandType dbCommandType = CommandType.Text)
+        {
+            DataDefinition def = DataDefinition.FromType(typeof(T));
+            return await dbConnection.ExecuteAsync(sql ?? def.GenerateUpdateSQL(), dbCommandType, def.GenerateParameters(item).ToArray());
+        }
+
+        public static async Task<int> DeleteAsync<T>(this DbConnection dbConnection, T item, string sql = null, CommandType dbCommandType = CommandType.Text)
+        {
+            DataDefinition def = DataDefinition.FromType(typeof(T));
+            return await dbConnection.ExecuteAsync(sql ?? def.GenerateDeleteSQL(), dbCommandType, def.GenerateParameters(item).ToArray());
         }
     }
 }

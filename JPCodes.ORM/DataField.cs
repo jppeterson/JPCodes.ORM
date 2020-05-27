@@ -15,35 +15,6 @@ namespace JPCodes.ORM
         public bool IsKey { get; set; }
         public Type DataType { get; set; }
         public Type SafeDataType { get; set; }
-        public DbType DbType
-        {
-            get
-            {
-                switch (SafeDataType.Name)
-                {
-                    case "String":
-                        return DbType.String;
-                    case "Int16":
-                        return DbType.Int16;
-                    case "Int32":
-                        return DbType.Int16;
-                    case "Int64":
-                        return DbType.Int16;
-                    case "Boolean":
-                        return DbType.Boolean;
-                    case "Decimal":
-                        return DbType.Decimal;
-                    case "Double":
-                        return DbType.Double;
-                    case "DateTime":
-                        return DbType.DateTime;
-                    case "Guid":
-                        return DbType.Guid;
-                    default:
-                        return default;
-                }
-            }
-        }
         public string FieldName { get; set; }
         public string PropertyName { get; set; }
         public string DisplayName { get; set; }

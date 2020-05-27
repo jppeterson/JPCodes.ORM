@@ -1,23 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Text;
 
 namespace JPCodes.ORM
 {
     /// <summary>
-    /// Set a table name to be different than the class name.
+    /// Specify DB formatting
     /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
-    public class DataRecordAttribute : Attribute
+    public class DataRecordAttribute : Attribute, IDatabase
     {
         public string TableName { get; set; }
+
+        public virtual string ParameterPrefix => throw new NotImplementedException();
+        public virtual string EncloseObject(string item) => throw new NotImplementedException();
+        public virtual DbParameter CreateParameter(string name, object value) => throw new NotImplementedException();
+
         public DataRecordAttribute() : base() { }
         public DataRecordAttribute(string tableName) : base()
             => TableName = tableName;
     }
 
     /// <summary>
-    /// Set a DisplayName and FieldName to be different than the property name.
+    /// Specify field setup
     /// </summary>
     [AttributeUsage(AttributeTargets.Property)]
     public class DataFieldAttribute : Attribute
