@@ -38,7 +38,7 @@ namespace JPCodes.ORM.Examples
             {
                 using (MySqlConnection connection = new MySqlConnection("ConnString"))
                 {
-                    return await connection.ExecuteOneAsync<User>("SELECT TOP 1 * FROM dbo.[User]");
+                    return await connection.ExecuteOneAsync<User>("SELECT * FROM `User` LIMIT 1");
                 }
             }).Result;
 
@@ -47,7 +47,7 @@ namespace JPCodes.ORM.Examples
             {
                 using (MySqlConnection connection = new MySqlConnection("ConnString"))
                 {
-                    return await connection.ExecuteManyAsync<User>("SELECT * FROM dbo.[User]");
+                    return await connection.ExecuteManyAsync<User>("SELECT * FROM `User`");
                 }
             }).Result;
 
