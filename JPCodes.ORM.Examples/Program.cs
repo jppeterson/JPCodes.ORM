@@ -1,7 +1,9 @@
 ﻿using MySql.Data.MySqlClient;
 using System;
+using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace JPCodes.ORM.Examples
 {
@@ -9,21 +11,53 @@ namespace JPCodes.ORM.Examples
     {
         static void Main(string[] args)
         {
-            //This only hurts the first time you call FromType
-            DataDefinition def = DataDefinition.FromType(typeof(User));
-
-            WriteDefinition(def, new User
+            //Example data model
+            User data = new User
             {
                 UserID = int.MaxValue,
                 FirstName = "Tony",
                 LastName = "Tiger"
-            });
+            };
 
-            Console.ReadKey();
+            //Output example queries to the console window
+            WriteDefinition(data);
+
+            //Insert the model into the database
+            Task.Run(async () => 
+            {
+                using (MySqlConnection connection = new MySqlConnection("ConnString"))
+                {
+                    await connection.InsertAsync(data);
+                    //await connection.UpdateAsync(data);
+                    //await connection.DeleteAsync(data);
+                }
+            }).Wait();
+
+            //Select a model from the database
+            User model = Task.Run(async () =>
+            {
+                using (MySqlConnection connection = new MySqlConnection("ConnString"))
+                {
+                    return await connection.ExecuteOneAsync<User>("SELECT TOP 1 * FROM dbo.[User]");
+                }
+            }).Result;
+
+            //Select multiple models from the database
+            List<User> models = Task.Run(async () =>
+            {
+                using (MySqlConnection connection = new MySqlConnection("ConnString"))
+                {
+                    return await connection.ExecuteManyAsync<User>("SELECT * FROM dbo.[User]");
+                }
+            }).Result;
+
+            Console.ReadLine();
         }
 
-        public static void WriteDefinition<T>(DataDefinition def, T item)
+        public static void WriteDefinition<T>(T item)
         {
+            DataDefinition def = DataDefinition.FromType(typeof(T));
+
             Console.WriteLine("Tablename:\r\n    " + def.TableName);
             Console.WriteLine();
             Console.WriteLine("Fields:");
@@ -45,28 +79,5 @@ namespace JPCodes.ORM.Examples
             Console.WriteLine();
             Console.WriteLine("Params:\r\n    " + string.Join(Environment.NewLine + "    ", def.GenerateParameters(item).Select(P => $"{P.ParameterName, 15} : {P.Value}")));
         }
-    }
-
-    //Required to specify SQL formatting
-    [MySqlDataRecord]
-    public class User
-    {
-        //Set a property as Key. This makes it a WHERE parameter in dynamic SQL
-        [DataField(IsKey = true)]
-        public int UserID { get; set; }
-
-        //Change the default field name
-        [DataField(FieldName = "first_name")]
-        public string FirstName { get; set; }
-        
-        //FieldName matches PropertyName
-        public string LastName { get; set; }
-    }
-
-    public class MySqlDataRecordAttribute : DataRecordAttribute
-    {
-        public override string ParameterPrefix => "?";
-        public override string EncloseObject(string item) => $"`{item}`";
-        public override DbParameter CreateParameter(string name, object value) => new MySqlParameter(name, value);
     }
 }
