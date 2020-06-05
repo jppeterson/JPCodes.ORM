@@ -37,7 +37,7 @@ namespace JPCodes.ORM
 
             StringBuilder sb = new StringBuilder($"INSERT INTO {Database.EncloseObject(TableName)} (");
             StringBuilder sb2 = new StringBuilder();
-            foreach (DataField field in Fields)
+            foreach (DataField field in Fields.Where(F => !F.IsKey))
             {
                 sb.AppendFormat("{0},", Database.EncloseObject(field.FieldName));
                 sb2.AppendFormat("{0}{1},", Database.ParameterPrefix, field.PropertyName);
@@ -58,7 +58,7 @@ namespace JPCodes.ORM
             }
 
             StringBuilder sb = new StringBuilder($"UPDATE {Database.EncloseObject(TableName)} SET ");
-            foreach (DataField field in Fields)
+            foreach (DataField field in Fields.Where(F => !F.IsKey))
             {
                 sb.AppendFormat("{0}={1}{2},", Database.EncloseObject(field.FieldName), Database.ParameterPrefix, field.PropertyName);
             }
@@ -76,6 +76,27 @@ namespace JPCodes.ORM
 
             StringBuilder sb = new StringBuilder($"DELETE FROM {Database.EncloseObject(TableName)} WHERE ");
             sb.Append(GenerateWhereSQL());
+            return sb.ToString();
+        }
+        public string GenerateSelectSQL()
+        {
+            if (Fields.Count == 0)
+            {
+                throw new NotSupportedException("Type must contain public properties.");
+            }
+
+            StringBuilder sb = new StringBuilder($"SELECT "); 
+            foreach (DataField field in Fields.Where(F => !F.IsKey))
+            {
+                sb.AppendFormat("{0},", Database.EncloseObject(field.FieldName));
+            }
+            sb.Length--;
+
+            sb.Append(" FROM ");
+            sb.Append(Database.EncloseObject(TableName));
+            sb.Append(" WHERE ");
+            sb.Append(GenerateWhereSQL());
+
             return sb.ToString();
         }
         public string GenerateWhereSQL()

@@ -166,11 +166,29 @@ namespace JPCodes.ORM
             }
         }
 
-        public static Task<TOut> ExecuteOneAsync<TIn, TOut>(this DbConnection dbConnection, string sql, TIn input, CommandType dbCommmandType = CommandType.Text) where TOut : new() 
-            => dbConnection.ExecuteOneAsync<TOut>(sql, dbCommmandType, GetParameters<TIn>(input).ToArray());
+        public static Task<TOut> ExecuteOneAsync<TIn, TOut>(this DbConnection dbConnection, string sql, TIn input, CommandType dbCommmandType = CommandType.Text)
+            where TOut : new()
+        {
+            return dbConnection.ExecuteOneAsync<TOut>(sql, dbCommmandType, GetParameters(input).ToArray());
+        }
 
-        public static Task<List<TOut>> ExecuteManyAsync<TIn, TOut>(this DbConnection dbConnection, string sql, TIn input, CommandType dbCommmandType = CommandType.Text) where TOut : new() 
-            => dbConnection.ExecuteManyAsync<TOut>(sql, dbCommmandType, GetParameters<TIn>(input).ToArray());
+        public static Task<List<TOut>> ExecuteManyAsync<TIn, TOut>(this DbConnection dbConnection, string sql, TIn input, CommandType dbCommmandType = CommandType.Text)
+            where TOut : new()
+        {
+            return dbConnection.ExecuteManyAsync<TOut>(sql, dbCommmandType, GetParameters(input).ToArray());
+        }
+
+        public static Task<TOut> SelectOneAsync<TIn, TOut>(this DbConnection dbConnection, TIn input)
+            where TOut : new()
+        {
+            return dbConnection.ExecuteOneAsync<TOut>(DataDefinition.FromType(input.GetType()).GenerateSelectSQL(), CommandType.Text, GetParameters(input).ToArray());
+        }
+
+        public static Task<List<TOut>> SelectManyAsync<TIn, TOut>(this DbConnection dbConnection, TIn input)
+            where TOut : new()
+        { 
+            return dbConnection.ExecuteManyAsync<TOut>(DataDefinition.FromType(input.GetType()).GenerateSelectSQL(), CommandType.Text, GetParameters(input).ToArray()); 
+        }
 
         public static async Task<int> InsertAsync<Tin>(this DbConnection dbConnection, Tin item, string sql = null, CommandType dbCommandType = CommandType.Text)
         {
