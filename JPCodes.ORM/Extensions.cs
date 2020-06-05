@@ -34,6 +34,10 @@ namespace JPCodes.ORM
             }
             return resultFields;
         }
+        private static List<DbParameter> GetParameters<T>(T item)
+        {
+            return DataDefinition.FromType(typeof(T)).GenerateParameters(item);
+        }
 
         public static async Task<int> ExecuteAsync(this DbConnection dbConnection, string sql, CommandType dbCommmandType = CommandType.Text, params DbParameter[] parameters)
         {
@@ -62,8 +66,8 @@ namespace JPCodes.ORM
             }
         }
 
-        public static async Task<T> ExecuteOneAsync<T>(this DbConnection dbConnection, string sql, CommandType dbCommmandType = CommandType.Text, Func<DbDataRecord, T> mapper = null, params DbParameter[] parameters)
-            where T : new()
+        public static async Task<TOut> ExecuteOneAsync<TOut>(this DbConnection dbConnection, string sql, CommandType dbCommmandType = CommandType.Text, params DbParameter[] parameters)
+            where TOut : new()
         {
             bool opened = dbConnection.State == ConnectionState.Closed;
             try
@@ -82,11 +86,11 @@ namespace JPCodes.ORM
                     {
                         try
                         {
-                            List<(int index, DataField datafield)> resultFields = GetFieldCache<T>(sql, rdr);
+                            List<(int index, DataField datafield)> resultFields = GetFieldCache<TOut>(sql, rdr);
 
                             if (await rdr.ReadAsync())
                             {
-                                T item = new T();
+                                TOut item = new TOut();
                                 foreach ((int index, DataField datafield) in resultFields)
                                 {
                                     datafield.Set(item, rdr[index]);
@@ -111,8 +115,8 @@ namespace JPCodes.ORM
             }
         }
 
-        public static async Task<List<T>> ExecuteManyAsync<T>(this DbConnection dbConnection, string sql, CommandType dbCommmandType = CommandType.Text, Func<DbDataRecord, T> mapper = null, params DbParameter[] parameters)
-            where T : new()
+        public static async Task<List<TOut>> ExecuteManyAsync<TOut>(this DbConnection dbConnection, string sql, CommandType dbCommmandType = CommandType.Text, params DbParameter[] parameters)
+            where TOut : new()
         {
             bool opened = dbConnection.State == ConnectionState.Closed;
             try
@@ -132,12 +136,12 @@ namespace JPCodes.ORM
                     {
                         try
                         {
-                            List<(int index, DataField datafield)> resultFields = GetFieldCache<T>(sql, rdr);
+                            List<(int index, DataField datafield)> resultFields = GetFieldCache<TOut>(sql, rdr);
 
-                            List<T> results = new List<T>();
+                            List<TOut> results = new List<TOut>();
                             while (await rdr.ReadAsync())
                             {
-                                T item = new T();
+                                TOut item = new TOut();
                                 foreach (var (index, datafield) in resultFields)
                                 {
                                     datafield.Set(item, rdr[index]);
@@ -162,21 +166,27 @@ namespace JPCodes.ORM
             }
         }
 
-        public static async Task<int> InsertAsync<T>(this DbConnection dbConnection, T item, string sql = null, CommandType dbCommandType = CommandType.Text)
+        public static Task<TOut> ExecuteOneAsync<TIn, TOut>(this DbConnection dbConnection, string sql, TIn input, CommandType dbCommmandType = CommandType.Text) where TOut : new() 
+            => dbConnection.ExecuteOneAsync<TOut>(sql, dbCommmandType, GetParameters<TIn>(input).ToArray());
+
+        public static Task<List<TOut>> ExecuteManyAsync<TIn, TOut>(this DbConnection dbConnection, string sql, TIn input, CommandType dbCommmandType = CommandType.Text) where TOut : new() 
+            => dbConnection.ExecuteManyAsync<TOut>(sql, dbCommmandType, GetParameters<TIn>(input).ToArray());
+
+        public static async Task<int> InsertAsync<Tin>(this DbConnection dbConnection, Tin item, string sql = null, CommandType dbCommandType = CommandType.Text)
         {
-            DataDefinition def = DataDefinition.FromType(typeof(T));
+            DataDefinition def = DataDefinition.FromType(typeof(Tin));
             return await dbConnection.ExecuteAsync(sql ?? def.GenerateInsertSQL(), dbCommandType, def.GenerateParameters(item).ToArray());
         }
 
-        public static async Task<int> UpdateAsync<T>(this DbConnection dbConnection, T item, string sql = null, CommandType dbCommandType = CommandType.Text)
+        public static async Task<int> UpdateAsync<Tin>(this DbConnection dbConnection, Tin item, string sql = null, CommandType dbCommandType = CommandType.Text)
         {
-            DataDefinition def = DataDefinition.FromType(typeof(T));
+            DataDefinition def = DataDefinition.FromType(typeof(Tin));
             return await dbConnection.ExecuteAsync(sql ?? def.GenerateUpdateSQL(), dbCommandType, def.GenerateParameters(item).ToArray());
         }
 
-        public static async Task<int> DeleteAsync<T>(this DbConnection dbConnection, T item, string sql = null, CommandType dbCommandType = CommandType.Text)
+        public static async Task<int> DeleteAsync<Tin>(this DbConnection dbConnection, Tin item, string sql = null, CommandType dbCommandType = CommandType.Text)
         {
-            DataDefinition def = DataDefinition.FromType(typeof(T));
+            DataDefinition def = DataDefinition.FromType(typeof(Tin));
             return await dbConnection.ExecuteAsync(sql ?? def.GenerateDeleteSQL(), dbCommandType, def.GenerateParameters(item).ToArray());
         }
     }
