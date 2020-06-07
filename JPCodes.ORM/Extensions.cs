@@ -178,6 +178,18 @@ namespace JPCodes.ORM
             return dbConnection.ExecuteManyAsync<TOut>(sql, dbCommmandType, GetParameters(input).ToArray());
         }
 
+        public static Task<TIn> SelectOneAsync<TIn>(this DbConnection dbConnection, TIn input)
+            where TIn : new()
+        {
+            return dbConnection.ExecuteOneAsync<TIn>(DataDefinition.FromType(input.GetType()).GenerateSelectSQL(), CommandType.Text, GetParameters(input).ToArray());
+        }
+
+        public static Task<List<TIn>> SelectManyAsync<TIn>(this DbConnection dbConnection, TIn input)
+            where TIn : new()
+        {
+            return dbConnection.ExecuteManyAsync<TIn>(DataDefinition.FromType(input.GetType()).GenerateSelectSQL(), CommandType.Text, GetParameters(input).ToArray());
+        }
+
         public static Task<TOut> SelectOneAsync<TIn, TOut>(this DbConnection dbConnection, TIn input)
             where TOut : new()
         {
@@ -186,8 +198,8 @@ namespace JPCodes.ORM
 
         public static Task<List<TOut>> SelectManyAsync<TIn, TOut>(this DbConnection dbConnection, TIn input)
             where TOut : new()
-        { 
-            return dbConnection.ExecuteManyAsync<TOut>(DataDefinition.FromType(input.GetType()).GenerateSelectSQL(), CommandType.Text, GetParameters(input).ToArray()); 
+        {
+            return dbConnection.ExecuteManyAsync<TOut>(DataDefinition.FromType(input.GetType()).GenerateSelectSQL(), CommandType.Text, GetParameters(input).ToArray());
         }
 
         public static async Task<int> InsertAsync<Tin>(this DbConnection dbConnection, Tin item, string sql = null, CommandType dbCommandType = CommandType.Text)
