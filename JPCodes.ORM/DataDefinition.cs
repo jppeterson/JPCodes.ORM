@@ -62,6 +62,7 @@ namespace JPCodes.ORM
             {
                 sb.AppendFormat("{0}={1}{2},", Database.EncloseObject(field.FieldName), Database.ParameterPrefix, field.PropertyName);
             }
+            sb.Length--;
             sb.Append($" WHERE ");
             sb.Append(GenerateWhereSQL());
 
