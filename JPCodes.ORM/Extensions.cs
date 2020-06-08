@@ -66,6 +66,33 @@ namespace JPCodes.ORM
             }
         }
 
+        public static async Task<TOut> ExecuteValueAsync<TOut>(this DbConnection dbConnection, string sql, CommandType dbCommmandType = CommandType.Text, params DbParameter[] parameters)
+        {
+            bool opened = dbConnection.State == ConnectionState.Closed;
+            try
+            {
+                if (opened)
+                {
+                    await dbConnection.OpenAsync();
+                }
+
+                using (DbCommand command = dbConnection.CreateCommand())
+                {
+                    command.CommandText = sql;
+                    command.CommandType = dbCommmandType;
+                    command.Parameters.AddRange(parameters);
+                    return (TOut)await command.ExecuteScalarAsync();
+                }
+            }
+            finally
+            {
+                if (opened)
+                {
+                    dbConnection.Close();
+                }
+            }
+        }
+
         public static async Task<TOut> ExecuteOneAsync<TOut>(this DbConnection dbConnection, string sql, CommandType dbCommmandType = CommandType.Text, params DbParameter[] parameters)
             where TOut : new()
         {
@@ -166,40 +193,44 @@ namespace JPCodes.ORM
             }
         }
 
-        public static Task<TOut> ExecuteOneAsync<TIn, TOut>(this DbConnection dbConnection, string sql, TIn input, CommandType dbCommmandType = CommandType.Text)
+        public static async Task<TOut> ExecuteOneAsync<TIn, TOut>(this DbConnection dbConnection, string sql, TIn input, CommandType dbCommmandType = CommandType.Text)
             where TOut : new()
         {
-            return dbConnection.ExecuteOneAsync<TOut>(sql, dbCommmandType, GetParameters(input).ToArray());
+            return await dbConnection.ExecuteOneAsync<TOut>(sql, dbCommmandType, GetParameters(input).ToArray());
         }
 
-        public static Task<List<TOut>> ExecuteManyAsync<TIn, TOut>(this DbConnection dbConnection, string sql, TIn input, CommandType dbCommmandType = CommandType.Text)
+        public static async Task<List<TOut>> ExecuteManyAsync<TIn, TOut>(this DbConnection dbConnection, string sql, TIn input, CommandType dbCommmandType = CommandType.Text)
             where TOut : new()
         {
-            return dbConnection.ExecuteManyAsync<TOut>(sql, dbCommmandType, GetParameters(input).ToArray());
+            return await dbConnection.ExecuteManyAsync<TOut>(sql, dbCommmandType, GetParameters(input).ToArray());
         }
 
-        public static Task<TIn> SelectOneAsync<TIn>(this DbConnection dbConnection, TIn input)
+        public static async Task<TIn> SelectOneAsync<TIn>(this DbConnection dbConnection, TIn input)
             where TIn : new()
         {
-            return dbConnection.ExecuteOneAsync<TIn>(DataDefinition.FromType(input.GetType()).GenerateSelectSQL(), CommandType.Text, GetParameters(input).ToArray());
+            DataDefinition def = DataDefinition.FromType(input.GetType());
+            return await dbConnection.ExecuteOneAsync<TIn>(def.GenerateSelectSQL(), CommandType.Text, GetParameters(input).ToArray());
         }
 
-        public static Task<List<TIn>> SelectManyAsync<TIn>(this DbConnection dbConnection, TIn input)
+        public static async Task<List<TIn>> SelectManyAsync<TIn>(this DbConnection dbConnection, TIn input)
             where TIn : new()
         {
-            return dbConnection.ExecuteManyAsync<TIn>(DataDefinition.FromType(input.GetType()).GenerateSelectSQL(), CommandType.Text, GetParameters(input).ToArray());
+            DataDefinition def = DataDefinition.FromType(input.GetType());
+            return await dbConnection.ExecuteManyAsync<TIn>(def.GenerateSelectSQL(), CommandType.Text, GetParameters(input).ToArray());
         }
 
-        public static Task<TOut> SelectOneAsync<TIn, TOut>(this DbConnection dbConnection, TIn input)
+        public static async Task<TOut> SelectOneAsync<TIn, TOut>(this DbConnection dbConnection, TIn input)
             where TOut : new()
         {
-            return dbConnection.ExecuteOneAsync<TOut>(DataDefinition.FromType(input.GetType()).GenerateSelectSQL(), CommandType.Text, GetParameters(input).ToArray());
+            DataDefinition def = DataDefinition.FromType(input.GetType());
+            return await dbConnection.ExecuteOneAsync<TOut>(def.GenerateSelectSQL(), CommandType.Text, GetParameters(input).ToArray());
         }
 
-        public static Task<List<TOut>> SelectManyAsync<TIn, TOut>(this DbConnection dbConnection, TIn input)
+        public static async Task<List<TOut>> SelectManyAsync<TIn, TOut>(this DbConnection dbConnection, TIn input)
             where TOut : new()
         {
-            return dbConnection.ExecuteManyAsync<TOut>(DataDefinition.FromType(input.GetType()).GenerateSelectSQL(), CommandType.Text, GetParameters(input).ToArray());
+            DataDefinition def = DataDefinition.FromType(input.GetType());
+            return await dbConnection.ExecuteManyAsync<TOut>(def.GenerateSelectSQL(), CommandType.Text, GetParameters(input).ToArray());
         }
 
         public static async Task<int> InsertAsync<Tin>(this DbConnection dbConnection, Tin item, string sql = null, CommandType dbCommandType = CommandType.Text)
