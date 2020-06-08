@@ -69,6 +69,8 @@ namespace JPCodes.ORM.Examples
                 Console.WriteLine();
             }
             Console.WriteLine();
+            Console.WriteLine("Select:\r\n    " + def.GenerateSelectSQL());
+            Console.WriteLine();
             Console.WriteLine("Insert:\r\n    " + def.GenerateInsertSQL());
             Console.WriteLine();
             Console.WriteLine("Update:\r\n    " + def.GenerateUpdateSQL());

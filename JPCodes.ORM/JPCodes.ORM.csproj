@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>1.5.4</Version>
+    <Version>1.5.5</Version>
     <Authors>Jake Peterson</Authors>
     <Company>JPCodes</Company>
     <Product />
@@ -10,7 +10,7 @@
     <PackageProjectUrl></PackageProjectUrl>
     <RepositoryUrl>https://github.com/jppeterson/JPCodes.ORM</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageReleaseNotes>Updated package documentation</PackageReleaseNotes>
+    <PackageReleaseNotes>Added 1=1 where logic.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

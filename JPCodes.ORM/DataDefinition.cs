@@ -103,11 +103,18 @@ namespace JPCodes.ORM
         {
             List<DataField> keyFields = Fields.Where(F => F.IsKey).ToList();
             StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < keyFields.Count; i++)
+            if (keyFields.Count == 0)
             {
-                sb.Append($"{Database.EncloseObject(keyFields[i].FieldName)}={Database.ParameterPrefix}{keyFields[i].PropertyName} AND ");
+                sb.Append("1=1");
             }
-            sb.Length -= 5;
+            else
+            {
+                for (int i = 0; i < keyFields.Count; i++)
+                {
+                    sb.Append($"{Database.EncloseObject(keyFields[i].FieldName)}={Database.ParameterPrefix}{keyFields[i].PropertyName} AND ");
+                }
+                sb.Length -= 5;
+            }
             return sb.ToString();
         }
         #endregion
