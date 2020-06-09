@@ -12,7 +12,7 @@ namespace JPCodes.ORM
     public class DataField
     {
         public DataDefinition ParentDefinition { get; set; }
-        public bool IsKey { get; set; }
+        public bool IsWhere { get; set; }
         public Type DataType { get; set; }
         public Type SafeDataType { get; set; }
         public string FieldName { get; set; }

@@ -1,23 +1,36 @@
-﻿using JPCodes.ORM.MySql;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace JPCodes.ORM.Examples
 {
     //Required to specify SQL formatting
-    [MySqlDataRecord]
+    [MySqlTable("user")]
     public class User
     {
-        //Set a property as Key. This makes it a WHERE parameter in dynamic SQL
-        [DataField(IsKey = true)]
-        public int UserID { get; set; }
+        //This makes it a WHERE parameter in dynamic SQL
+        [Field("user_id")]
+        public virtual int UserID { get; set; }
 
         //Change the default field name
-        [DataField(FieldName = "first_name")]
-        public string FirstName { get; set; }
+        [Field("first_name")]
+        public virtual string FirstName { get; set; }
 
-        //FieldName matches PropertyName
-        public string LastName { get; set; }
+        [Field("last_name")]
+        public virtual string LastName { get; set; }
+    }
+
+    public class UserPKSelect : User
+    {
+        //Where
+        [FieldWhere]
+        public int User_ID { get; set; }
+    }
+
+    public class UserFirstNameSelect : User
+    {
+        //Where
+        [FieldWhere]
+        public string First_Name { get; set; }
     }
 }

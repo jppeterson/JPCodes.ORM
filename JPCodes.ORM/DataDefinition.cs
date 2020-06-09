@@ -26,10 +26,24 @@ namespace JPCodes.ORM
         {
             return Fields.Where(FLD => fields.Any(STR => STR.Equals(FLD.FieldName, StringComparison.OrdinalIgnoreCase)));
         }
-        public List<DbParameter> GenerateParameters<T>(T item) 
-            => Fields.Select(F => Database.CreateParameter(F.PropertyName, F.Get(item))).ToList();
+        public List<DbParameter> GenerateParameters<T>(T item)
+        {
+            if (Database == null)
+            {
+                throw new NotSupportedException("Parameter generation requires a database specific Table attribute.");
+            }
+            if (Fields.Count == 0)
+            {
+                throw new NotSupportedException("Type must contain public properties.");
+            }
+            return Fields.Select(F => Database.CreateParameter(F.PropertyName, F.Get(item))).ToList();
+        }
         public string GenerateInsertSQL()
         {
+            if (Database == null)
+            {
+                throw new NotSupportedException("SQL generation requires a database specific Table attribute.");
+            }
             if (Fields.Count == 0)
             {
                 throw new NotSupportedException("Type must contain public properties.");
@@ -37,7 +51,7 @@ namespace JPCodes.ORM
 
             StringBuilder sb = new StringBuilder($"INSERT INTO {Database.EncloseObject(TableName)} (");
             StringBuilder sb2 = new StringBuilder();
-            foreach (DataField field in Fields.Where(F => !F.IsKey))
+            foreach (DataField field in Fields.Where(F => !F.IsWhere))
             {
                 sb.AppendFormat("{0},", Database.EncloseObject(field.FieldName));
                 sb2.AppendFormat("{0}{1},", Database.ParameterPrefix, field.PropertyName);
@@ -52,13 +66,17 @@ namespace JPCodes.ORM
         }
         public string GenerateUpdateSQL()
         {
+            if (Database == null)
+            {
+                throw new NotSupportedException("SQL generation requires a database specific Table attribute.");
+            }
             if (Fields.Count == 0)
             {
                 throw new NotSupportedException("Type must contain public properties.");
             }
 
             StringBuilder sb = new StringBuilder($"UPDATE {Database.EncloseObject(TableName)} SET ");
-            foreach (DataField field in Fields.Where(F => !F.IsKey))
+            foreach (DataField field in Fields.Where(F => !F.IsWhere))
             {
                 sb.AppendFormat("{0}={1}{2},", Database.EncloseObject(field.FieldName), Database.ParameterPrefix, field.PropertyName);
             }
@@ -70,6 +88,10 @@ namespace JPCodes.ORM
         }
         public string GenerateDeleteSQL()
         {
+            if (Database == null)
+            {
+                throw new NotSupportedException("SQL generation requires a database specific Table attribute.");
+            }
             if (Fields.Count == 0)
             {
                 throw new NotSupportedException("Type must contain public properties.");
@@ -81,13 +103,17 @@ namespace JPCodes.ORM
         }
         public string GenerateSelectSQL()
         {
+            if (Database == null)
+            {
+                throw new NotSupportedException("SQL generation requires a database specific Table attribute.");
+            }
             if (Fields.Count == 0)
             {
                 throw new NotSupportedException("Type must contain public properties.");
             }
 
             StringBuilder sb = new StringBuilder($"SELECT "); 
-            foreach (DataField field in Fields.Where(F => !F.IsKey))
+            foreach (DataField field in Fields.Where(F => !F.IsWhere))
             {
                 sb.AppendFormat("{0},", Database.EncloseObject(field.FieldName));
             }
@@ -102,7 +128,7 @@ namespace JPCodes.ORM
         }
         public string GenerateWhereSQL()
         {
-            List<DataField> keyFields = Fields.Where(F => F.IsKey).ToList();
+            List<DataField> keyFields = Fields.Where(F => F.IsWhere).ToList();
             StringBuilder sb = new StringBuilder();
             if (keyFields.Count == 0)
             {
@@ -110,6 +136,10 @@ namespace JPCodes.ORM
             }
             else
             {
+                if (Database == null)
+                {
+                    throw new NotSupportedException("SQL generation requires a database specific Table attribute.");
+                }
                 for (int i = 0; i < keyFields.Count; i++)
                 {
                     sb.Append($"{Database.EncloseObject(keyFields[i].FieldName)}={Database.ParameterPrefix}{keyFields[i].PropertyName} AND ");
@@ -130,7 +160,7 @@ namespace JPCodes.ORM
             }
             else
             {
-                DataRecordAttribute drAttribute = t.GetCustomAttribute<DataRecordAttribute>();
+                TableAttribute drAttribute = t.GetCustomAttribute<TableAttribute>();
 
                 DataDefinition def = new DataDefinition
                 {
@@ -142,7 +172,7 @@ namespace JPCodes.ORM
 
                 foreach (PropertyInfo info in t.GetProperties())
                 {
-                    DataFieldAttribute dfAttribute = info.GetCustomAttribute<DataFieldAttribute>();
+                    FieldAttribute dfAttribute = info.GetCustomAttribute<FieldAttribute>();
                     def.Fields.Add(new DataField
                     {
                         ParentDefinition = def,
@@ -153,7 +183,7 @@ namespace JPCodes.ORM
                         SafeDataType = info.PropertyType.IsConstructedGenericType 
                             ? Nullable.GetUnderlyingType(info.PropertyType) 
                             : info.PropertyType,
-                        IsKey = dfAttribute?.IsKey ?? false,
+                        IsWhere = dfAttribute is FieldWhereAttribute
                     });
                 }
 

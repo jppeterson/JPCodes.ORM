@@ -8,8 +8,8 @@ namespace JPCodes.ORM
     /// <summary>
     /// Specify DB formatting
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class)]
-    public class DataRecordAttribute : Attribute, IDatabase
+    [AttributeUsage(AttributeTargets.Class, Inherited = true)]
+    public class TableAttribute : Attribute, IDatabase
     {
         public string TableName { get; set; }
 
@@ -17,32 +17,37 @@ namespace JPCodes.ORM
         public virtual string EncloseObject(string item) => throw new NotImplementedException();
         public virtual DbParameter CreateParameter(string name, object value) => throw new NotImplementedException();
 
-        public DataRecordAttribute() : base() { }
-        public DataRecordAttribute(string tableName) : base()
+        public TableAttribute() : base() { }
+        public TableAttribute(string tableName) : base()
             => TableName = tableName;
     }
 
     /// <summary>
-    /// Specify field setup
+    /// Field to insert, update, or select.
     /// </summary>
     [AttributeUsage(AttributeTargets.Property)]
-    public class DataFieldAttribute : Attribute
+    public class FieldAttribute : Attribute
     {
         public string DisplayName { get; set; }
         public string FieldName { get; set; }
-        public bool IsKey { get; set; }
 
-        public DataFieldAttribute() : base() { }
-        public DataFieldAttribute(bool isKey) : this() 
-        {
-            IsKey = isKey;
-        }
-        public DataFieldAttribute(string fieldName) : this(false)
+        public FieldAttribute() : base() { }
+        public FieldAttribute(string fieldName) : this()
             => FieldName = DisplayName = fieldName;
-        public DataFieldAttribute(string fieldName, bool isKey) : this(isKey)
-            => FieldName = DisplayName = fieldName;
-        public DataFieldAttribute(string fieldName, string displayName, bool isKey) : this(fieldName, isKey) 
+        public FieldAttribute(string fieldName, string displayName) : this(fieldName)
             => DisplayName = displayName;
-        public DataFieldAttribute(string fieldName, string displayName) : this(fieldName, displayName, false) { }
+    }
+
+    /// <summary>
+    /// Field to specify condition for insert, update, delete, or select
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Property)]
+    public class FieldWhereAttribute : FieldAttribute
+    {
+        public FieldWhereAttribute() : base() { }
+        public FieldWhereAttribute(string fieldName) : base()
+            => FieldName = DisplayName = fieldName;
+        public FieldWhereAttribute(string fieldName, string displayName) : this(fieldName)
+            => DisplayName = displayName;
     }
 }

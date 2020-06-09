@@ -11,23 +11,38 @@ namespace JPCodes.ORM.Examples
     {
         static void Main(string[] args)
         {
-            //Example data model
-            User data = new User
+            User user = new User
             {
                 UserID = int.MaxValue,
                 FirstName = "Tony",
                 LastName = "Tiger"
             };
 
+            UserPKSelect pkSelect = new UserPKSelect
+            {
+                UserID = int.MaxValue
+            };
+
+            UserFirstNameSelect fnSelect = new UserFirstNameSelect
+            {
+                First_Name = "Tony"
+            };
+
             //Output example queries to the console window
-            WriteDefinition(data);
+            WriteDefinition(user);
+
+            //Output example queries to the console window
+            WriteDefinition(pkSelect);
+
+            //Output example queries to the console window
+            WriteDefinition(fnSelect);
 
             //Insert the model into the database
             Task.Run(async () => 
             {
                 using (MySqlConnection connection = new MySqlConnection("ConnString"))
                 {
-                    await connection.InsertAsync(data);
+                    await connection.InsertAsync(user);
                     //await connection.UpdateAsync(data);
                     //await connection.DeleteAsync(data);
                 }
@@ -38,16 +53,22 @@ namespace JPCodes.ORM.Examples
             {
                 using (MySqlConnection connection = new MySqlConnection("ConnString"))
                 {
-                    return await connection.ExecuteOneAsync<User>("SELECT * FROM `User` LIMIT 1");
+                    return await connection.SelectOneAsync<UserPKSelect, User>(new UserPKSelect
+                    {
+                        User_ID = int.MaxValue
+                    });
                 }
             }).Result;
 
-            //Select multiple models from the database
+            //Select a model from the database
             List<User> models = Task.Run(async () =>
             {
                 using (MySqlConnection connection = new MySqlConnection("ConnString"))
                 {
-                    return await connection.ExecuteManyAsync<User>("SELECT * FROM `User`");
+                    return await connection.SelectManyAsync<UserFirstNameSelect, User>(new UserFirstNameSelect
+                    {
+                        First_Name = "Tony"
+                    });
                 }
             }).Result;
 
@@ -60,12 +81,14 @@ namespace JPCodes.ORM.Examples
 
             Console.WriteLine("Tablename:\r\n    " + def.TableName);
             Console.WriteLine();
+            Console.WriteLine("Typename:\r\n    " + def.Type.Name);
+            Console.WriteLine();
             Console.WriteLine("Fields:");
             foreach (DataField field in def.Fields)
             {
                 Console.WriteLine($"    PropertyName: {field.PropertyName}");
                 Console.WriteLine($"       Fieldname: {field.FieldName}");
-                Console.WriteLine($"           IsKey: {field.IsKey}");
+                Console.WriteLine($"           IsKey: {field.IsWhere}");
                 Console.WriteLine();
             }
             Console.WriteLine();
@@ -81,5 +104,17 @@ namespace JPCodes.ORM.Examples
             Console.WriteLine();
             Console.WriteLine("Params:\r\n    " + string.Join(Environment.NewLine + "    ", def.GenerateParameters(item).Select(P => $"{P.ParameterName, 15} : {P.Value}")));
         }
+
+
+    }
+
+    public class MySqlTableAttribute : TableAttribute
+    {
+        public MySqlTableAttribute() : base() { }
+        public MySqlTableAttribute(string tableName) : base(tableName) { }
+
+        public override string ParameterPrefix => "?";
+        public override string EncloseObject(string item) => $"`{item}`";
+        public override DbParameter CreateParameter(string name, object value) => new MySqlParameter(name, value);
     }
 }
