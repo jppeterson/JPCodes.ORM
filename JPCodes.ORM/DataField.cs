@@ -13,6 +13,7 @@ namespace JPCodes.ORM
     {
         public DataDefinition ParentDefinition { get; set; }
         public bool IsWhere { get; set; }
+        public bool IsIgnored { get; set; }
         public Type DataType { get; set; }
         public Type SafeDataType { get; set; }
         public string FieldName { get; set; }

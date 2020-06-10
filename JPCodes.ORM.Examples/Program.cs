@@ -17,32 +17,37 @@ namespace JPCodes.ORM.Examples
                 FirstName = "Tony",
                 LastName = "Tiger"
             };
+            WriteDefinition(user);
+
+            UserInsert insert = new UserInsert
+            {
+                UserID = int.MaxValue,
+                FirstName = "Tony",
+                LastName = "Tiger"
+            };
+            WriteDefinition(insert);
+            WriteInsert(insert);
 
             UserPKSelect pkSelect = new UserPKSelect
             {
-                UserID = int.MaxValue
+                UserIDWhere = int.MaxValue
             };
+            WriteDefinition(pkSelect);
+            WriteSelect(pkSelect);
 
             UserFirstNameSelect fnSelect = new UserFirstNameSelect
             {
-                First_Name = "Tony"
+                FirstNameWhere = "Tony"
             };
-
-            //Output example queries to the console window
-            WriteDefinition(user);
-
-            //Output example queries to the console window
-            WriteDefinition(pkSelect);
-
-            //Output example queries to the console window
             WriteDefinition(fnSelect);
+            WriteSelect(fnSelect);
 
             //Insert the model into the database
-            Task.Run(async () => 
+            Task.Run(async () =>
             {
                 using (MySqlConnection connection = new MySqlConnection("ConnString"))
                 {
-                    await connection.InsertAsync(user);
+                    await connection.InsertAsync(insert);
                     //await connection.UpdateAsync(data);
                     //await connection.DeleteAsync(data);
                 }
@@ -53,22 +58,16 @@ namespace JPCodes.ORM.Examples
             {
                 using (MySqlConnection connection = new MySqlConnection("ConnString"))
                 {
-                    return await connection.SelectOneAsync<UserPKSelect, User>(new UserPKSelect
-                    {
-                        User_ID = int.MaxValue
-                    });
+                    return await connection.SelectOneAsync<UserPKSelect, User>(pkSelect);
                 }
             }).Result;
 
-            //Select a model from the database
+            //Select models from the database
             List<User> models = Task.Run(async () =>
             {
                 using (MySqlConnection connection = new MySqlConnection("ConnString"))
                 {
-                    return await connection.SelectManyAsync<UserFirstNameSelect, User>(new UserFirstNameSelect
-                    {
-                        First_Name = "Tony"
-                    });
+                    return await connection.SelectManyAsync<UserFirstNameSelect, User>(fnSelect);
                 }
             }).Result;
 
@@ -79,30 +78,33 @@ namespace JPCodes.ORM.Examples
         {
             DataDefinition def = DataDefinition.FromType(typeof(T));
 
-            Console.WriteLine("Tablename:\r\n    " + def.TableName);
-            Console.WriteLine();
-            Console.WriteLine("Typename:\r\n    " + def.Type.Name);
-            Console.WriteLine();
-            Console.WriteLine("Fields:");
-            foreach (DataField field in def.Fields)
-            {
-                Console.WriteLine($"    PropertyName: {field.PropertyName}");
-                Console.WriteLine($"       Fieldname: {field.FieldName}");
-                Console.WriteLine($"           IsKey: {field.IsWhere}");
-                Console.WriteLine();
-            }
-            Console.WriteLine();
+            Console.WriteLine("Tablename:\r\n" + def.TableName);
+            Console.WriteLine("Typename:\r\n" + def.Type.Name);
+            Console.WriteLine("Params:\r\n" + string.Join(Environment.NewLine + "", def.GenerateParameters(item).Select(P => $"{P.ParameterName,15} : {P.Value}")));
+        }
+        public static void WriteSelect<T>(T item)
+        {
+            DataDefinition def = DataDefinition.FromType(item.GetType());
             Console.WriteLine("Select:\r\n    " + def.GenerateSelectSQL());
             Console.WriteLine();
+        }
+        public static void WriteInsert<T>(T item)
+        {
+            DataDefinition def = DataDefinition.FromType(item.GetType());
             Console.WriteLine("Insert:\r\n    " + def.GenerateInsertSQL());
             Console.WriteLine();
+        }
+        public static void WriteUpdate<T>(T item)
+        {
+            DataDefinition def = DataDefinition.FromType(item.GetType());
             Console.WriteLine("Update:\r\n    " + def.GenerateUpdateSQL());
             Console.WriteLine();
+        }
+        public static void WriteDelete<T>(T item)
+        {
+            DataDefinition def = DataDefinition.FromType(item.GetType());
             Console.WriteLine("Delete:\r\n    " + def.GenerateDeleteSQL());
             Console.WriteLine();
-            Console.WriteLine("Where:\r\n    " + def.GenerateWhereSQL());
-            Console.WriteLine();
-            Console.WriteLine("Params:\r\n    " + string.Join(Environment.NewLine + "    ", def.GenerateParameters(item).Select(P => $"{P.ParameterName, 15} : {P.Value}")));
         }
 
 

@@ -25,7 +25,7 @@ namespace JPCodes.ORM
     /// <summary>
     /// Field to insert, update, or select.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Property)]
+    [AttributeUsage(AttributeTargets.Property, Inherited = false)]
     public class FieldAttribute : Attribute
     {
         public string DisplayName { get; set; }
@@ -41,13 +41,26 @@ namespace JPCodes.ORM
     /// <summary>
     /// Field to specify condition for insert, update, delete, or select
     /// </summary>
-    [AttributeUsage(AttributeTargets.Property)]
+    [AttributeUsage(AttributeTargets.Property, Inherited = false)]
     public class FieldWhereAttribute : FieldAttribute
     {
         public FieldWhereAttribute() : base() { }
         public FieldWhereAttribute(string fieldName) : base()
             => FieldName = DisplayName = fieldName;
         public FieldWhereAttribute(string fieldName, string displayName) : this(fieldName)
+            => DisplayName = displayName;
+    }
+
+    /// <summary>
+    /// Suppress use of field
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Property, Inherited = false)]
+    public class FieldIgnoreAttribute : FieldAttribute
+    {
+        public FieldIgnoreAttribute() : base() { }
+        public FieldIgnoreAttribute(string fieldName) : base()
+            => FieldName = DisplayName = fieldName;
+        public FieldIgnoreAttribute(string fieldName, string displayName) : this(fieldName)
             => DisplayName = displayName;
     }
 }

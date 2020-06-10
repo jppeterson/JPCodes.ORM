@@ -51,7 +51,7 @@ namespace JPCodes.ORM
 
             StringBuilder sb = new StringBuilder($"INSERT INTO {Database.EncloseObject(TableName)} (");
             StringBuilder sb2 = new StringBuilder();
-            foreach (DataField field in Fields.Where(F => !F.IsWhere))
+            foreach (DataField field in Fields.Where(F => !F.IsWhere && !F.IsIgnored))
             {
                 sb.AppendFormat("{0},", Database.EncloseObject(field.FieldName));
                 sb2.AppendFormat("{0}{1},", Database.ParameterPrefix, field.PropertyName);
@@ -76,7 +76,7 @@ namespace JPCodes.ORM
             }
 
             StringBuilder sb = new StringBuilder($"UPDATE {Database.EncloseObject(TableName)} SET ");
-            foreach (DataField field in Fields.Where(F => !F.IsWhere))
+            foreach (DataField field in Fields.Where(F => !F.IsWhere && !F.IsIgnored))
             {
                 sb.AppendFormat("{0}={1}{2},", Database.EncloseObject(field.FieldName), Database.ParameterPrefix, field.PropertyName);
             }
@@ -113,7 +113,7 @@ namespace JPCodes.ORM
             }
 
             StringBuilder sb = new StringBuilder($"SELECT "); 
-            foreach (DataField field in Fields.Where(F => !F.IsWhere))
+            foreach (DataField field in Fields.Where(F => !F.IsWhere && !F.IsIgnored))
             {
                 sb.AppendFormat("{0},", Database.EncloseObject(field.FieldName));
             }
@@ -128,7 +128,7 @@ namespace JPCodes.ORM
         }
         public string GenerateWhereSQL()
         {
-            List<DataField> keyFields = Fields.Where(F => F.IsWhere).ToList();
+            List<DataField> keyFields = Fields.Where(F => F.IsWhere && !F.IsIgnored).ToList();
             StringBuilder sb = new StringBuilder();
             if (keyFields.Count == 0)
             {
@@ -183,7 +183,8 @@ namespace JPCodes.ORM
                         SafeDataType = info.PropertyType.IsConstructedGenericType 
                             ? Nullable.GetUnderlyingType(info.PropertyType) 
                             : info.PropertyType,
-                        IsWhere = dfAttribute is FieldWhereAttribute
+                        IsWhere = dfAttribute is FieldWhereAttribute,
+                        IsIgnored = dfAttribute is FieldIgnoreAttribute
                     });
                 }
 
@@ -191,10 +192,6 @@ namespace JPCodes.ORM
 
                 return def;
             }
-        }
-        public static DataDefinition FromType(string typeName)
-        {
-            return _definitions.FirstOrDefault(DEF => DEF.Key.Name.Equals(typeName, StringComparison.OrdinalIgnoreCase)).Value;
         }
         #endregion
     }

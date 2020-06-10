@@ -1,36 +1,44 @@
-﻿using System;
+﻿using Org.BouncyCastle.Bcpg;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace JPCodes.ORM.Examples
 {
-    //Required to specify SQL formatting
     [MySqlTable("user")]
     public class User
     {
-        //This makes it a WHERE parameter in dynamic SQL
         [Field("user_id")]
         public virtual int UserID { get; set; }
 
-        //Change the default field name
         [Field("first_name")]
         public virtual string FirstName { get; set; }
 
         [Field("last_name")]
         public virtual string LastName { get; set; }
+
+        [Field("created")]
+        public virtual DateTime Created { get; set; }
+    }
+
+    public class UserInsert : User
+    {
+        [FieldIgnore]
+        public override int UserID => 0;
+
+        [Field("created")]
+        public override DateTime Created => DateTime.UtcNow;
     }
 
     public class UserPKSelect : User
     {
-        //Where
-        [FieldWhere]
-        public int User_ID { get; set; }
+        [FieldWhere("user_id")]
+        public int UserIDWhere { get; set; }
     }
 
     public class UserFirstNameSelect : User
     {
-        //Where
-        [FieldWhere]
-        public string First_Name { get; set; }
+        [FieldWhere("first_name")]
+        public string FirstNameWhere { get; set; }
     }
 }
